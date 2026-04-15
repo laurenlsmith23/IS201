@@ -92,26 +92,6 @@ img.page-image {
 }
 
 
-ol.main-list > li {
-  font-weight: bold;
-  color: #7b3f00;                
-  font-family: Arial, sans-serif;
-}
-
-ol.main-list > li ul {
-  margin-top: 4px;
-  padding-left: 20px;
-  list-style-type: disc;
-}
-
-ol.main-list > li ul li {
-  font-weight: normal;
-  color: #3b2a1a;                    
-  font-family: Georgia, serif;      
-  font-size: 0.95rem;
-  line-height: 1.7;
-}
-
 
 
 div.page-footer {
