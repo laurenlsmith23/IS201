@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wordle Clone</title>
+
+  <!-- ═══════════════════════════════════════
+       ALL STYLES ARE ON THIS ONE PAGE
+  ═══════════════════════════════════════ -->
+  <style>
+
+    /* ── Page basics ── */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* ── Top bar ── */
+    .top-bar {
+      width: 100%;
+      background-color: #333;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .top-bar h1 {
+      font-size: 1.4rem;
+      letter-spacing: 3px;
+      color: #6aaa64;
+    }
+
+    .top-bar a {
+      color: #ccc;
+      font-size: 0.88rem;
+      text-decoration: none;
+    }
+
+    .top-bar a:hover {
+      color: #6aaa64;
+    }
+
+    /* ── Instructions ── */
+    .instructions {
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 12px 20px;
+      margin: 16px;
+      max-width: 440px;
+      width: 100%;
+      font-size: 0.88rem;
+      color: #555;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* ── Tile grid ── */
+    #board {
+      display: grid;
+      grid-template-rows: repeat(6, 62px);
+      grid-template-columns: repeat(5, 62px);
+      gap: 6px;
+      margin: 10px auto;
+    }
+
+    .tile {
+      width: 62px;
+      height: 62px;
+      border: 2px solid #cccccc;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: bold;
+      font-family: Arial, sans-serif;
+      text-transform: uppercase;
+      transition: border-color 0.1s;
+      background-color: white;
+      color: #333;
+    }
+
+    /* When a tile has a letter typed into it */
+    .tile.filled {
+      border-color: #888888;
+    }
+
+    /* After a row is submitted — correct letter, correct position */
+    .tile.correct {
+      background-color: #6aaa64;
+      border-color: #6aaa64;
+      color: white;
+    }
+
+    /* After a row is submitted — correct letter, wrong position */
+    .tile.present {
+      background-color: #c9b458;
+      border-color: #c9b458;
+      color: white;
+    }
+
+    /* After a row is submitted — letter not in word */
+    .tile.absent {
+      background-color: #787c7e;
+      border-color: #787c7e;
+      color: white;
+    }
+
+    /* Pop animation when you type a letter */
+    .tile.pop {
+      animation: pop 0.1s ease;
+    }
+
+    @keyframes pop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+
+    /* Shake animation when guess is wrong/invalid */
+    .shake {
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-5px); }
+      40%       { transform: translateX(5px); }
+      60%       { transform: translateX(-5px); }
+      80%       { transform: translateX(5px); }
+    }
+
+    /* ── Message box ── */
+    #message {
+      height: 32px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: #c0392b;
+      text-align: center;
+      margin: 6px 0;
+      min-width: 340px;
+    }
+
+    /* ── Keyboard ── */
+    #keyboard {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      margin: 12px 0 30px;
+    }
+
+    .key-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .key {
+      height: 56px;
+      min-width: 40px;
+      padding: 0 8px;
+      border: none;
+      border-radius: 4px;
+      background-color: #d3d6da;
+      color: #333;
+      font-size: 0.85rem;
+      font-weight: bold;
+      font-family: Arial, sans-serif;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: background-color 0.2s;
+    }
+
+    .key:hover {
+      opacity: 0.85;
+    }
+
+    /* Wide keys for Enter and Backspace */
+    .key.wide {
+      min-width: 64px;
+      font-size: 0.78rem;
+    }
+
+    /* Keyboard key colors after guesses */
+    .key.correct {
+      background-color: #6aaa64;
+      color: white;
+    }
+
+    .key.present {
+      background-color: #c9b458;
+      color: white;
+    }
+
+    .key.absent {
+      background-color: #787c7e;
+      color: white;
+    }
+
+    /* ── New game button ── */
+    #newGameBtn {
+      display: none;    /* hidden until game is over */
+      margin: 10px auto 20px;
+      padding: 12px 28px;
+      background-color: #6aaa64;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: Arial, sans-serif;
+    }
+
+    #newGameBtn:hover {
+      background-color: #5a9a54;
+    }
+
+    /* ── Back link ── */
+    .back-link {
+      font-size: 0.85rem;
+      color: #0d6efd;
+      text-decoration: none;
+      margin-bottom: 20px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <h1>WORDLE</h1>
+    <a href="scratch.html">← Back to Word Games Page</a>
+  </div>
+
+
+  <!-- INSTRUCTIONS -->
+  <div class="instructions">
+    Guess the 5-letter word in <strong>6 tries</strong>.<br />
+    🟩 Green = right letter, right spot &nbsp;|&nbsp;
+    🟨 Yellow = right letter, wrong spot &nbsp;|&nbsp;
+    ⬜ Gray = letter not in word
+  </div>
+
+
+  <!-- GAME BOARD (tiles filled in by JavaScript) -->
+  <div id="board"></div>
+
+
+  <!-- MESSAGE (shows errors or win/loss messages) -->
+  <div id="message"></div>
+
+
+  <!-- NEW GAME BUTTON (shown after game ends) -->
+  <button id="newGameBtn" onclick="startNewGame()">🔄 New Game</button>
+
+
+  <!-- ON-SCREEN KEYBOARD -->
+  <div id="keyboard">
+    <div class="key-row" id="row1"></div>
+    <div class="key-row" id="row2"></div>
+    <div class="key-row" id="row3"></div>
+  </div>
+
+
+  <!-- BACK LINK -->
+  <a class="back-link" href="scratch.html">← Back to Lauren's Word Games Page</a>
+
+
+  <!-- ═══════════════════════════════════════
+       ALL JAVASCRIPT IS ON THIS ONE PAGE
+  ═══════════════════════════════════════ -->
+  <script>
+
+    // ─────────────────────────────────────────
+    // WORD LIST — 50 common 5-letter words
+    // TODO: You can add more words to this list!
+    // ─────────────────────────────────────────
+    const WORDS = [
+      "about", "above", "abuse", "actor", "acute",
+      "admit", "adopt", "adult", "after", "again",
+      "agent", "agree", "ahead", "alarm", "album",
+      "alert", "alike", "align", "alive", "alley",
+      "allow", "alone", "along", "alter", "angel",
+      "anger", "angle", "angry", "anime", "ankle",
+      "annex", "apart", "apple", "apply", "apron",
+      "arena", "argue", "arise", "armor", "aroma",
+      "array", "arrow", "artsy", "asked", "asset",
+      "atlas", "attic", "audio", "audit", "avoid",
+      "award", "aware", "awful", "basic", "basis",
+      "beach", "beard", "beast", "began", "begin",
+      "being", "below", "bench", "bible", "birth",
+      "black", "blade", "blame", "bland", "blank",
+      "blast", "blaze", "bleed", "bless", "blind",
+      "block", "blood", "bloom", "blown", "blues",
+      "blunt", "board", "bonus", "boost", "bound",
+      "boxer", "brace", "brain", "brand", "brave",
+      "bread", "break", "breed", "bride", "brief",
+      "bring", "broad", "broke", "brook", "brown",
+      "brush", "buddy", "build", "built", "burst",
+      "cabin", "cable", "camel", "candy", "cargo",
+      "carry", "catch", "cause", "cease", "chair",
+      "chalk", "chart", "chase", "cheap", "check",
+      "cheek", "cheer", "chess", "chest", "chief",
+      "child", "china", "choir", "chunk", "civic",
+      "civil", "claim", "clash", "class", "clean",
+      "clear", "clerk", "click", "cliff", "climb",
+      "clock", "clone", "close", "cloud", "coach",
+      "coast", "cobra", "cocoa", "coded", "comet",
+      "comic", "coral", "count", "court", "cover",
+      "crack", "craft", "crane", "crash", "crazy",
+      "cream", "creek", "crime", "crisp", "cross",
+      "crowd", "crown", "cruel", "crush", "curve",
+      "cycle", "daily", "dance", "dated", "dealt",
+      "death", "debut", "decor", "delay", "delta",
+      "depot", "depth", "derby", "dirty", "disco",
+      "ditch", "doing", "doubt", "dough", "draft",
+      "drama", "drank", "drawn", "dream", "dress",
+      "dried", "drift", "drink", "drive", "drops",
+      "drove", "drown", "ducky", "dwell", "dwelt",
+      "dying", "eager", "eagle", "early", "earth",
+      "eight", "elite", "email", "empty", "ended",
+      "enemy", "enjoy", "enter", "entry", "equal",
+      "error", "essay", "event", "every", "exact",
+      "exist", "extra", "fable", "faint", "faith",
+      "false", "fancy", "fatal", "feast", "fence",
+      "fever", "fiber", "fiery", "fifth", "fifty",
+      "fight", "final", "first", "fixed", "flame",
+      "flash", "flesh", "flock", "flood", "floor",
+      "flour", "fluid", "flute", "focus", "force",
+      "forge", "forth", "forum", "found", "frame",
+      "frank", "freed", "fresh", "front", "frost",
+      "froze", "fruit", "fully", "fungi", "funny",
+      "ghost", "given", "giver", "glare", "glass",
+      "globe", "gloom", "gloss", "glove", "going",
+      "grace", "grade", "grain", "grand", "grant",
+      "grape", "graph", "grasp", "grass", "grave",
+      "graze", "great", "green", "greet", "grind",
+      "groan", "gross", "group", "grove", "growl",
+      "grown", "guard", "guess", "guest", "guide",
+      "guild", "guile", "guise", "gusto", "gypsy",
+      "habit", "handy", "happy", "harsh", "hasty",
+      "haven", "heart", "heavy", "hence", "herbs",
+      "hinge", "hippo", "hobby", "honor", "horse",
+      "hotel", "hound", "house", "human", "humor",
+      "hurry", "hyper", "ideal", "image", "imply",
+      "inbox", "index", "indie", "inner", "input",
+      "issue", "ivory", "jewel", "joust", "juice",
+      "jumbo", "jumpy", "karma", "knack", "knife",
+      "knock", "known", "label", "lance", "large",
+      "laser", "later", "laugh", "layer", "leaky",
+      "learn", "ledge", "legal", "lemon", "level",
+      "light", "limit", "liner", "liver", "lodge",
+      "logic", "loose", "lover", "lower", "lucky",
+      "lunar", "lunch", "lusty", "lyric", "magic",
+      "major", "maker", "manor", "maple", "march",
+      "marks", "marry", "match", "mayor", "media",
+      "merit", "metal", "might", "minor", "minus",
+      "model", "money", "month", "moral", "mourn",
+      "mouth", "mover", "movie", "muddy", "music",
+      "naive", "nerve", "never", "night", "noble",
+      "noise", "north", "noted", "novel", "nurse",
+      "ocean", "occur", "offer", "often", "olive",
+      "onset", "opera", "orbit", "order", "other",
+      "outer", "owner", "oxide", "ozone", "paint",
+      "panel", "panic", "paper", "party", "pasta",
+      "paste", "patch", "pause", "peace", "pearl",
+      "penny", "perch", "phone", "photo", "piece",
+      "pilot", "pinch", "pixel", "pizza", "place",
+      "plain", "plane", "plant", "plate", "plaza",
+      "plead", "plume", "plunge","point", "polar",
+      "posed", "power", "press", "price", "pride",
+      "prime", "print", "prior", "prize", "probe",
+      "prose", "proud", "prove", "psalm", "pupil",
+      "queen", "query", "quest", "queue", "quiet",
+      "quota", "quote", "radar", "radio", "raise",
+      "range", "rapid", "reach", "ready", "realm",
+      "rebel", "recon", "relay", "realm", "renew",
+      "repay", "repel", "reply", "reset", "rider",
+      "ridge", "rifle", "right", "risky", "river",
+      "robin", "robot", "rocky", "rogue", "roman",
+      "rough", "round", "route", "royal", "rugby",
+      "ruler", "rural", "rusty", "sadly", "saint",
+      "salad", "sauce", "scale", "scare", "scene",
+      "scent", "scope", "score", "scout", "seize",
+      "sense", "serve", "seven", "shade", "shake",
+      "shall", "shame", "shape", "share", "shark",
+      "sharp", "shell", "shift", "shirt", "shock",
+      "shore", "shout", "shove", "sight", "siege",
+      "since", "sixth", "sixty", "sized", "skill",
+      "slate", "slave", "sleep", "slice", "slide",
+      "slope", "sloth", "smart", "smell", "smile",
+      "smoke", "snake", "solar", "solid", "solve",
+      "sonic", "sorry", "sound", "south", "space",
+      "spare", "spark", "speak", "speed", "spend",
+      "spice", "spike", "spine", "spite", "sport",
+      "sprig", "squad", "staff", "stage", "stain",
+      "stake", "stand", "stare", "stark", "start",
+      "state", "stays", "stead", "steel", "steep",
+      "steer", "stern", "stick", "stiff", "still",
+      "stock", "stomp", "stone", "stood", "store",
+      "stork", "storm", "story", "stove", "stuck",
+      "study", "style", "sugar", "suite", "sunny",
+      "super", "surge", "swamp", "swear", "sweep",
+      "swept", "swift", "swirl", "sword", "sworn",
+      "syrup", "table", "taunt", "taste", "teach",
+      "tears", "tense", "terms", "thank", "theme",
+      "there", "these", "thick", "thing", "think",
+      "third", "thorn", "those", "three", "threw",
+      "throw", "thumb", "tiger", "tight", "timer",
+      "tired", "title", "today", "token", "topic",
+      "total", "touch", "tough", "towel", "tower",
+      "toxic", "trace", "track", "trade", "trail",
+      "train", "trait", "tramp", "trash", "treat",
+      "trick", "tried", "troll", "troop", "trout",
+      "trove", "truck", "truly", "trump", "trunk",
+      "trust", "truth", "tutor", "twice", "twist",
+      "tying", "tyrant","ultra", "under", "unify",
+      "union", "unite", "until", "upper", "upset",
+      "urban", "usage", "usher", "usual", "usurp",
+      "utter", "vague", "valid", "valor", "valve",
+      "vapor", "vault", "video", "vigor", "viral",
+      "viral", "virus", "visit", "visor", "vocal",
+      "voice", "voter", "vying", "wafer", "wagon",
+      "waste", "watch", "water", "weary", "wedge",
+      "weigh", "weird", "wheat", "wheel", "where",
+      "while", "white", "whole", "whose", "width",
+      "witch", "woods", "world", "worry", "worse",
+      "worst", "worth", "wound", "wrath", "write",
+      "wrong", "yacht", "yield", "young", "yours",
+      "youth", "zebra", "zonal"
+    ];
+
+    // ── Keyboard layout ──────────────────────────
+    const ROWS = [
+      ["q","w","e","r","t","y","u","i","o","p"],
+      ["a","s","d","f","g","h","j","k","l"],
+      ["Enter","z","x","c","v","b","n","m","⌫"]
+    ];
+
+    // ── Game state variables ──────────────────────
+    let targetWord   = "";
+    let currentRow   = 0;
+    let currentCol   = 0;
+    let currentGuess = [];
+    let gameOver     = false;
+
+    // Tracks keyboard colors: letter → "correct" / "present" / "absent"
+    const keyColors = {};
+
+
+    // ── Build the 6×5 tile grid ───────────────────
+    function buildBoard() {
+      const board = document.getElementById("board");
+      board.innerHTML = "";
+      for (let r = 0; r < 6; r++) {
+        for (let c = 0; c < 5; c++) {
+          const tile = document.createElement("div");
+          tile.classList.add("tile");
+          tile.id = `tile-${r}-${c}`;
+          board.appendChild(tile);
+        }
+      }
+    }
+
+
+    // ── Build the on-screen keyboard ──────────────
+    function buildKeyboard() {
+      ROWS.forEach((letters, i) => {
+        const row = document.getElementById(`row${i + 1}`);
+        row.innerHTML = "";
+        letters.forEach(letter => {
+          const btn = document.createElement("button");
+          btn.classList.add("key");
+          btn.textContent = letter;
+          btn.id = "key-" + letter;
+          if (letter === "Enter" || letter === "⌫") btn.classList.add("wide");
+          btn.addEventListener("click", () => handleKey(letter));
+          row.appendChild(btn);
+        });
+      });
+    }
+
+
+    // ── Pick a random word from the list ─────────
+    function pickWord() {
+      const i = Math.floor(Math.random() * WORDS.length);
+      return WORDS[i];
+    }
+
+
+    // ── Show a message to the player ─────────────
+    function showMessage(msg, color = "#c0392b") {
+      const el = document.getElementById("message");
+      el.textContent = msg;
+      el.style.color = color;
+    }
+
+
+    // ── Handle a key press (letter, Enter, or ⌫) ─
+    function handleKey(key) {
+      if (gameOver) return;
+
+      if (key === "⌫" || key === "Backspace") {
+        // Delete last letter
+        if (currentCol > 0) {
+          currentCol--;
+          currentGuess.pop();
+          const tile = document.getElementById(`tile-${currentRow}-${currentCol}`);
+          tile.textContent = "";
+          tile.classList.remove("filled");
+        }
+        return;
+      }
+
+      if (key === "Enter") {
+        submitGuess();
+        return;
+      }
+
+      // Regular letter
+      if (currentCol < 5 && /^[a-zA-Z]$/.test(key)) {
+        const letter = key.toLowerCase();
+        currentGuess.push(letter);
+        const tile = document.getElementById(`tile-${currentRow}-${currentCol}`);
+        tile.textContent = letter.toUpperCase();
+        tile.classList.add("filled");
+        tile.classList.add("pop");
+        setTimeout(() => tile.classList.remove("pop"), 150);
+        currentCol++;
+        showMessage(""); // clear any error
+      }
+    }
+
+
+    // ── Submit the current guess row ─────────────
+    function submitGuess() {
+      if (currentCol < 5) {
+        showMessage("Not enough letters!");
+        shakeRow(currentRow);
+        return;
+      }
+
+      const guess = currentGuess.join("");
+
+      // Check if it's a real word (must be in the word list)
+      if (!WORDS.includes(guess)) {
+        showMessage("Not in word list!");
+        shakeRow(currentRow);
+        return;
+      }
+
+      // Color the tiles
+      const result = getColors(guess, targetWord);
+      colorRow(currentRow, guess, result);
+
+      // Update keyboard colors
+      for (let i = 0; i < 5; i++) {
+        const letter = guess[i];
+        const color  = result[i];
+        // Only upgrade: absent < present < correct
+        if (!keyColors[letter] || shouldUpgrade(keyColors[letter], color)) {
+          keyColors[letter] = color;
+        }
+        const keyEl = document.getElementById("key-" + letter);
+        if (keyEl) {
+          keyEl.className = "key " + keyColors[letter];
+        }
+      }
+
+      // Check win
+      if (guess === targetWord) {
+        const msgs = ["Genius!", "Magnificent!", "Impressive!", "Splendid!", "Great!", "Phew!"];
+        showMessage(msgs[currentRow] || "Nice!", "#27ae60");
+        gameOver = true;
+        document.getElementById("newGameBtn").style.display = "block";
+        return;
+      }
+
+      // Move to next row
+      currentRow++;
+      currentCol   = 0;
+      currentGuess = [];
+
+      // Check loss
+      if (currentRow === 6) {
+        showMessage("The word was: " + targetWord.toUpperCase());
+        gameOver = true;
+        document.getElementById("newGameBtn").style.display = "block";
+      }
+    }
+
+
+    // ── Figure out green / yellow / gray for each letter ──
+    function getColors(guess, target) {
+      const result   = Array(5).fill("absent");
+      const tLetters = target.split("");  // copy so we can mark used letters
+      const gLetters = guess.split("");
+
+      // Pass 1: find greens
+      for (let i = 0; i < 5; i++) {
+        if (gLetters[i] === tLetters[i]) {
+          result[i]   = "correct";
+          tLetters[i] = null;   // mark used
+          gLetters[i] = null;   // mark used
+        }
+      }
+
+      // Pass 2: find yellows
+      for (let i = 0; i < 5; i++) {
+        if (gLetters[i] === null) continue;
+        const idx = tLetters.indexOf(gLetters[i]);
+        if (idx !== -1) {
+          result[i]    = "present";
+          tLetters[idx] = null;  // mark used
+        }
+      }
+
+      return result;
+    }
+
+
+    // ── Paint a row with colors ───────────────────
+    function colorRow(row, guess, result) {
+      for (let c = 0; c < 5; c++) {
+        const tile = document.getElementById(`tile-${row}-${c}`);
+        // Small delay so tiles flip one at a time (nicer effect)
+        setTimeout(() => {
+          tile.classList.add(result[c]);
+        }, c * 80);
+      }
+    }
+
+
+    // ── Shake a row to signal a bad guess ────────
+    function shakeRow(row) {
+      for (let c = 0; c < 5; c++) {
+        const tile = document.getElementById(`tile-${row}-${c}`);
+        tile.classList.add("shake");
+        setTimeout(() => tile.classList.remove("shake"), 500);
+      }
+    }
+
+
+    // ── Determine if a color is an upgrade ───────
+    function shouldUpgrade(current, newColor) {
+      const rank = { absent: 0, present: 1, correct: 2 };
+      return rank[newColor] > rank[current];
+    }
+
+
+    // ── Start a new game ─────────────────────────
+    function startNewGame() {
+      targetWord   = pickWord();
+      currentRow   = 0;
+      currentCol   = 0;
+      currentGuess = [];
+      gameOver     = false;
+
+      // Clear keyboard colors
+      for (const letter in keyColors) delete keyColors[letter];
+
+      buildBoard();
+      buildKeyboard();
+      showMessage("");
+      document.getElementById("newGameBtn").style.display = "none";
+    }
+
+
+    // ── Listen for physical keyboard presses ─────
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === "Backspace") {
+        handleKey(e.key);
+      } else if (/^[a-zA-Z]$/.test(e.key)) {
+        handleKey(e.key);
+      }
+    });
+
+
+    // ── Start the game on page load ───────────────
+    startNewGame();
+
+  </script>
+</body>
+</html>
