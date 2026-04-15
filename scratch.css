@@ -39,10 +39,6 @@ div.top-nav a {
   margin-left: 18px;
 }
 
-div.top-nav a:hover {
-  color: #ffffff;
-  text-decoration: underline;
-}
 
 
 div.page-hero {
@@ -52,12 +48,6 @@ div.page-hero {
   padding: 50px 20px;
 }
 
-div.page-hero h1 {
-  font-family: Georgia, serif;       
-  color: #ffffff;                   
-  font-size: 2.5rem;
-  margin-bottom: 10px;
-}
 
 div.page-hero p {
   font-size: 1.1rem;
@@ -112,11 +102,6 @@ img.page-image {
 }
 
 
-ol.main-list {
-  padding-left: 20px;
-  line-height: 2;
-}
-
 ol.main-list > li {
   font-weight: bold;
   color: #7b3f00;                
@@ -142,11 +127,6 @@ div.two-col {
   display: flex;
   gap: 24px;
   flex-wrap: wrap;
-}
-
-div.two-col .col {
-  flex: 1;
-  min-width: 220px;
 }
 
 
