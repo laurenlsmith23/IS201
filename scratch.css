@@ -123,12 +123,6 @@ ol.main-list > li ul li {
 }
 
 
-div.two-col {
-  display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-
 
 div.page-footer {
   background-color: #7b3f00;
